@@ -19,12 +19,12 @@ public class Game_Control : MonoBehaviour {
     public static Game_Control Instance; // 設定Instance，讓其他程式能讀取GameFunction
   
     public GameObject GameOverTitle; //宣告GameOverTitle物件
-    public GameObject PlayButton; //宣告PlayButton物件
-    public GameObject AttackButton; //宣告Button物件
-    public GameObject DefenceButton; //宣告Button物件
+   
     public bool IsPlaying = true; // 宣告IsPlaying 的布林資料，並設定初始值false
     bool isAttack = false;
     bool isDefence = false;
+    float width = Screen.width;
+    
     //初始化
     private void Awake()
     {
@@ -33,14 +33,16 @@ public class Game_Control : MonoBehaviour {
     }
     // Use this for initialization
     void Start () {
-
+        
         Instance = this;
         GameOverTitle.SetActive(false);
-        PlayButton.SetActive(false);
     }
 	
 	// Update is called once per frame
 	void Update () {
+        #if UNITY_ANDROID 
+                MobileInput();
+        #endif
         if (IsPlaying)
         {
             if (isAttack)
@@ -77,16 +79,73 @@ public class Game_Control : MonoBehaviour {
         }
        
 	}
+    void MobileInput()
+    {
+        if (IsPlaying)
+        {
+            if (Input.touchCount == 1)
+            {
+                Debug.Log(Input.touches[0].position.x);
+                //開始觸碰
+                if (Input.touches[0].phase == TouchPhase.Began)
+                {
+                    if (Input.touches[0].position.x < width / 2)
+                    {
+                        isAttack = true;
+                    }
+                    else if (Input.touches[0].position.x > width / 2)
+                    {
+                        isDefence = true;
+                    }
 
+                    //手指移動
+                }
+                else if (Input.touches[0].phase == TouchPhase.Moved)
+                {
+                    if (Input.touches[0].position.x < width / 2)
+                    {
+                        isAttack = true;
+                    }
+                    else if (Input.touches[0].position.x > width / 2)
+                    {
+                        isDefence = true;
+                    }
+                }
+
+
+                //手指離開螢幕
+                if (Input.touches[0].phase == TouchPhase.Ended || Input.touches[0].phase == TouchPhase.Canceled)
+                {
+                    if (Input.touches[0].position.x < width / 2)
+                    {
+                        isAttack = false;
+                    }
+                    else if (Input.touches[0].position.x > width / 2)
+                    {
+                        isDefence = false;
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (Input.touchCount == 1)
+            {
+                if (Input.touches[0].phase == TouchPhase.Began)
+                {
+                    GameStart();
+                }
+            }
+        }
+        
+        
+    }
 
     public void GameStart()
     {
 
         IsPlaying = true;
         GameOverTitle.SetActive(false);
-        PlayButton.SetActive(false);
-        AttackButton.SetActive(true);
-        DefenceButton.SetActive(true);
         Application.LoadLevel(Application.loadedLevel);
 
     }
@@ -95,10 +154,7 @@ public class Game_Control : MonoBehaviour {
     {
         IsPlaying = false; //IsPlaying設定成false
         Camera_Control.Instance.Stop();
-        AttackButton.SetActive(false);
-        DefenceButton.SetActive(false);
         GameOverTitle.SetActive(true); //GameOverTitle設定為ture
-        PlayButton.SetActive(true);
 
     }
     public void AddScore()
